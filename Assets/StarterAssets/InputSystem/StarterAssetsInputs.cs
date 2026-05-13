@@ -14,6 +14,8 @@ namespace StarterAssets
         public bool sprint;
         public bool attack;
         public bool dance_1;
+        public bool interact;
+        public bool rangedAttack;
 
         [Header("Movement Settings")]
 		public bool analogMovement;
@@ -25,7 +27,11 @@ namespace StarterAssets
 
 
 #if ENABLE_INPUT_SYSTEM
-		public void OnMove(InputValue value)
+        public void OnInteract(InputValue value)
+        {
+            InteractInput(value.isPressed);
+        }
+        public void OnMove(InputValue value)
 		{
 			MoveInput(value.Get<Vector2>());
 		}
@@ -58,9 +64,16 @@ namespace StarterAssets
                 Dance_1_Input(true);
             }
         }
+        public void OnRangedAttack(InputValue value)
+        {
+            RangedAttackInput(value.isPressed);
+        }
 #endif
 
-
+        public void InteractInput(bool newInteractState)
+        {
+            interact = newInteractState;
+        }
         public void MoveInput(Vector2 newMoveDirection)
         {
             move = newMoveDirection;
@@ -103,7 +116,10 @@ namespace StarterAssets
         {
             dance_1 = newDanceState;
         }
-
+        public void RangedAttackInput(bool newRangedAttackState)
+        {
+            rangedAttack = newRangedAttackState;
+        }
 
     }
 

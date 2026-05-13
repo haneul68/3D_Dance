@@ -105,6 +105,14 @@ namespace StarterAssets
 
         private bool _isDancing;
 
+        [Header("Attack Dash")]
+        [SerializeField] private float attackDashDistance = 1.5f;
+        [SerializeField] private float attackDashDuration = 0.12f;
+
+        private bool _isAttackDashing;
+        private float _attackDashTimer;
+        private Vector3 _attackDashDirection;
+
 #if ENABLE_INPUT_SYSTEM 
         private PlayerInput _playerInput;
 #endif
@@ -116,6 +124,8 @@ namespace StarterAssets
         private const float _threshold = 0.01f;
 
         private bool _hasAnimator;
+
+        [SerializeField] private Player_Melee_Attack player_Melee_Attack;
 
         private bool IsCurrentDeviceMouse
         {
@@ -136,6 +146,10 @@ namespace StarterAssets
             if (_mainCamera == null)
             {
                 _mainCamera = GameObject.FindGameObjectWithTag("MainCamera");
+            }
+            if (player_Melee_Attack == null) 
+            {
+                player_Melee_Attack= GetComponent<Player_Melee_Attack>();
             }
         }
 
@@ -168,6 +182,7 @@ namespace StarterAssets
             Move();
             Attack();
             Dance();
+            AttackDash();
         }
 
         private void LateUpdate()
@@ -183,7 +198,40 @@ namespace StarterAssets
                     _animator.SetTrigger(_animIDAttack);
                 }
 
+                if (player_Melee_Attack != null)
+                {
+                    player_Melee_Attack.Attack();
+                }
+
                 _input.attack = false;
+            }
+        }
+        public void AnimationEvent_AttackDash()
+        {
+            _isAttackDashing = true;
+            _attackDashTimer = attackDashDuration;
+            _attackDashDirection = transform.forward;
+        }
+        private void AttackDash()
+        {
+            if (!_isAttackDashing)
+                return;
+
+            _attackDashTimer -= Time.deltaTime;
+
+            float dashSpeed =
+                attackDashDistance /
+                attackDashDuration;
+
+            _controller.Move(
+                _attackDashDirection *
+                dashSpeed *
+                Time.deltaTime
+            );
+
+            if (_attackDashTimer <= 0f)
+            {
+                _isAttackDashing = false;
             }
         }
         private void AssignAnimationIDs()
@@ -389,26 +437,58 @@ namespace StarterAssets
                 new Vector3(transform.position.x, transform.position.y - GroundedOffset, transform.position.z),
                 GroundedRadius);
         }
+        private void FootL()
+        {
+            PlayFootstepSound();
+        }
+
+        private void FootR()
+        {
+            PlayFootstepSound();
+        }
+
+        private void PlayFootstepSound()
+        {
+            if (FootstepAudioClips == null || FootstepAudioClips.Length == 0) return;
+
+            int index = Random.Range(0, FootstepAudioClips.Length);
+
+            if (AudioFootsteps != null)
+            {
+                AudioFootsteps.PlayOneShot(FootstepAudioClips[index], FootstepAudioVolume);
+            }
+        }
 
         private void OnFootstep(AnimationEvent animationEvent)
         {
             if (animationEvent.animatorClipInfo.weight > 0.5f)
             {
+                PlayFootstepSound();
 
-                if (AudioFootsteps != null)
-                    AudioFootsteps.Play();
                 if (AudioFoley != null)
                     AudioFoley.Play();
             }
+        }
+
+
+        private void Land()
+        {
+            PlayLandSound();
         }
 
         private void OnLand(AnimationEvent animationEvent)
         {
             if (animationEvent.animatorClipInfo.weight > 0.5f)
             {
-                if (LandingAudio != null)
-                    LandingAudio.Play();
+                PlayLandSound();
+            }
+        }
 
+        private void PlayLandSound()
+        {
+            if (LandingAudio != null)
+            {
+                LandingAudio.Play();
             }
         }
 
